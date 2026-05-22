@@ -1,0 +1,11 @@
+Feature set,PCs (≥90% var),Silhouette ↑,Davies-Bouldin ↓
+Raw CpGs,13,-0.0097,4.0476
+DBSCAN regions (all CpGs),13,-0.0194,4.23
+HDBSCAN regions (all CpGs),13,-0.0223,4.3256
+OPTICS regions (all CpGs),13,-0.0217,4.3165
+ChromHMM regions (all CpGs),13,-0.025,4.4951
+DM CpGs (p < 0.3),13,0.1005,2.1828
+DBSCAN DMRs,13,0.1259,1.9866
+HDBSCAN DMRs,13,0.1244,1.9908
+OPTICS DMRs,13,0.1275,1.9696
+ChromHMM regions (DM CpGs),13,0.1247,1.9903
