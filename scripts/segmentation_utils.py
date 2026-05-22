@@ -115,3 +115,76 @@ def cluster_summary(labels, plot_dir=".", name="Clustering", plot=True):
         plt.show()
 
     return None
+
+
+def segment_by_chromhmm(meth_df, bed_path, min_cpgs=1):
+    """
+    Mean methylation per ChromHMM segment for each sample.
+
+    Reads a BED file and extracts first 4 columns (chrom, start, end, state),
+    maps CpG positions from meth_df.index ('chrom_pos' format) to segments via
+    per-chromosome binary search, and returns a (samples × segments) DataFrame.
+    Segments with fewer than `min_cpgs` covered CpGs are dropped — useful to
+    avoid pseudo-aggregation when most segments contain only 1-2 CpGs and the
+    feature ends up behaving like a renamed CpG. NaN imputation mirrors
+    build_cluster_X: intra-segment NaNs are averaged over; residual per-sample
+    NaNs are filled with the segment mean; fully-absent segments are dropped.
+    """
+    bed = pd.read_csv(
+        bed_path, sep="\t", header=None, usecols=[0, 1, 2, 3],
+        names=["chrom", "start", "end", "state"],
+        dtype=str,
+    )
+    # Drop track/browser header lines present in Roadmap files
+    bed = bed[bed["chrom"].str.startswith("chr")].copy()
+    bed["start"] = bed["start"].astype(int)
+    bed["end"]   = bed["end"].astype(int)
+    bed = bed.reset_index(drop=True)
+
+    cpg_coords = pd.DataFrame(
+        {
+            "chrom": meth_df.index.str.rsplit("_", n=1).str[0],
+            "pos":   meth_df.index.str.rsplit("_", n=1).str[1].astype(int),
+        },
+        index=meth_df.index,
+    )
+
+    seg_labels   = pd.Series(-1, index=meth_df.index, dtype=int)
+    bed_by_chrom = {chrom: grp for chrom, grp in bed.groupby("chrom")}
+
+    for chrom, cpg_chrom in cpg_coords.groupby("chrom"):
+        if chrom not in bed_by_chrom:
+            continue
+        ivs     = bed_by_chrom[chrom].sort_values("start")
+        starts  = ivs["start"].values
+        ends    = ivs["end"].values
+        bed_idx = ivs.index.values          # original BED row indices (after reset)
+
+        pos  = cpg_chrom["pos"].values
+        hit  = np.searchsorted(starts, pos, side="right") - 1
+        clip = np.clip(hit, 0, len(ends) - 1)
+        ok   = (hit >= 0) & (pos < ends[clip])
+        seg_labels[cpg_chrom.index[ok]] = bed_idx[hit[ok]]
+
+    covered = seg_labels[seg_labels != -1]
+    if min_cpgs > 1:
+        sizes   = covered.value_counts()
+        keep    = sizes[sizes >= min_cpgs].index
+        covered = covered[covered.isin(keep)]
+    if covered.empty:
+        return pd.DataFrame()
+
+    seg_met  = meth_df.loc[covered.index].groupby(covered).mean(skipna=True)
+
+    seg_meta = bed.loc[seg_met.index]
+    seg_met.index = (
+        seg_meta["chrom"] + ":"
+        + seg_meta["start"].astype(str) + "-"
+        + seg_meta["end"].astype(str)   + "_"
+        + seg_meta["state"]
+    ).values
+
+    row_means = seg_met.mean(axis=1)
+    seg_met   = seg_met.where(seg_met.notna(), row_means, axis=0).dropna(axis=0)
+
+    return seg_met.T   # (samples × segments)
