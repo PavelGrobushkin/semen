@@ -1,17 +1,12 @@
-<p align="right">
+# SEMEN <a href=""><img src="imgs/02_logo.png" align="right" width="350" ></a> <h3> SEgmentation for MEthylation Noise reduction </h3> 
 
-<img src="imgs/02_logo.svg" alt="SEMEN logo (placeholder — see imgs/ and the comment above)" width="200"/>
-
-</p>
-
-# SEMEN — SEgmentation for MEthylation Noise reduction
-
-> Grouping nearby CpG sites into segments to build better aging clocks and to improve separation of disease and healthy samples from DNA methylation data.
+Grouping nearby CpG sites into segments to improve transferability of aging clocks and to improve separation of disease and healthy samples using DNA methylation data.
 
 📄 **Looking for a quick overview?** The one-page defense poster — problem, design, headline results — is at `docs/defense_poster_en.pdf`.
 
-> **Authors:** [*Pavel Grobushkin,*]{.underline} *affiliation,; [Andrey Nekrasov]{.underline}*, *affiliation*\
-> **Supervisor:** [*Evgeniy Efimov*]{.underline}, Skolkovo Institute of Science and Technologies, Artificial Intelligence Research Institute
+> **Authors:** *Pavel Grobushkin*, affiliation; *Andrey Nekrasov*, affiliation
+>
+> **Supervisor:** *Evgeniy Efimov*, Skolkovo Institute of Science and Technologies, Artificial Intelligence Research Institute
 
 ------------------------------------------------------------------------
 
@@ -40,7 +35,7 @@ Sparsity of bulk and (especially) single-cell DNA methylation data is a major ch
 - [References](#references)
 - [Contact](#contact)
 
-## Repository structure {#repository-structure}
+## Repository structure
 
 ```         
 seg_met_noise/
@@ -61,7 +56,7 @@ seg_met_noise/
 └── README.md
 ```
 
-## Notebooks {#notebooks}
+## Notebooks
 
 The analyses are designed to be read top-to-bottom; the headings inside each notebook mirror the experimental logic.
 
@@ -73,7 +68,7 @@ Builds and validates **epigenetic age clocks** on mouse blood. Five feature repr
 
 Tests whether segmentation helps **separate biological groups** in unsupervised analysis. On a Lean-vs-Obese RRBS dataset ([GSE85928](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE85928), [Day et. al, (2017)](https://doi.org/10.1080/15592294.2017.1281501)), the notebook builds ten feature representations (raw CpGs × {all, differentially methylated} × 5 segmentations), runs PCA on each, and quantifies separation of obese and lean samples in PCA space with the **silhouette score** and **Davies–Bouldin index**. A summary table at the end ranks the methods.
 
-## Data {#data}
+## Data
 
 `sources/` is git-ignored because the parquet/BigWig matrices are too big for GitHub. To reproduce the analyses, populate `sources/` with the layout below. File naming inside each subfolder follows the conventions assumed by the notebooks (see the `Load data` cells).
 
@@ -90,7 +85,7 @@ Tests whether segmentation helps **separate biological groups** in unsupervised 
 
 For analysis in the notebook 01 **pre-processed parquet matrices** (CpG × sample, NaN where coverage ≤5 reads) and cleaned metadata CSVs produced by Evgeniy Efimov from the corresponding GEO submissions were used. If you do not have access to these processed files, contact us.
 
-## Results highlights {#results-highlights}
+## Results highlights
 
 External validation of Petkovich-trained clocks on the Thompson dataset (from notebook 01):
 
@@ -100,7 +95,7 @@ Group-separation metrics across all ten feature representations (from notebook 0
 
 ![Group separation summary table](imgs/04_separation_metrics.png)
 
-## Findings {#findings}
+## Findings
 
 Headline conclusions from the defense (see [`docs/defense_poster_en.pdf`](docs/defense_poster_en.pdf) for the figures behind each point):
 
@@ -108,7 +103,7 @@ Headline conclusions from the defense (see [`docs/defense_poster_en.pdf`](docs/d
 2.  **Density-based methods (DBSCAN / HDBSCAN / OPTICS) work, but are critically sensitive to hyperparameter choice.** Smaller HDBSCAN `min_cluster_size` overfits the training distribution: the model looks great in nested CV on Petkovich but collapses on Thompson because the small clusters are not reliably covered in the external dataset.
 3.  **Segmentation does *not* improve group separation in the unsupervised obesity setting.** Silhouette / Davies–Bouldin scores barely move when going from raw CpGs to clustered features. Likely cause: blood methylation carries limited signal for an adipose-tissue phenotype; an alternative tissue match is needed before declaring this a property of segmentation itself.
 
-## Reproducibility {#reproducibility}
+## Reproducibility
 
 ``` bash
 mamba env create -f environment.yml
@@ -117,7 +112,7 @@ mamba activate semen
 
 Heavy steps (HDBSCAN / OPTICS hyperparameter sweeps, full nested CV) are commented out by default in the notebooks; the corresponding `.pkl` results are loaded from `outputs/` so a kernel-restart-and-run-all completes in a few minutes. Uncomment the search blocks to regenerate.
 
-## Future directions {#future-directions}
+## Future directions
 
 `docs/research_notes_ru.docx` is a working document (in russian) — references and a curated catalogue of **candidate datasets** for extending and improving this analysis. Highlights:
 
@@ -128,7 +123,7 @@ Heavy steps (HDBSCAN / OPTICS hyperparameter sweeps, full nested CV) are comment
 
 `docs/research_notes_ru.docx` also contains links to various **murine and human blood datasets** (WGBS / RRBS) to explore
 
-## References {#references}
+## References
 
 - Simpson, DJ *et al.* (2023). [Region-based epigenetic clock design improves RRBS-based age prediction](https://doi.org/10.1111/acel.13866). Aging Cell, 22, e13866
 - Petkovich DA *et al.* (2017). [Using DNA methylation profiling to evaluate biological age and longevity interventions.](https://doi.org/10.1016/j.cmet.2017.03.016) *Cell Metabolism* 25(4):954–960.e6.
@@ -138,6 +133,6 @@ Heavy steps (HDBSCAN / OPTICS hyperparameter sweeps, full nested CV) are comment
 - Vu H, Ernst J (2023). [A universal chromatin state annotation for mouse.](https://doi.org/10.1186/s13059-023-02994-x) *Genome Biology* 24:153.
 - Ernst J, Kellis M (2012). [ChromHMM: automating chromatin-state discovery and characterization.](https://doi.org/10.1038/nmeth.1906) *Nature Methods* 9:215–216.
 
-## Contact {#contact}
+## Contact
 
 For questions, please reach out *Pavel Grobushkin* at pgrobush\@smail.uni-koeln.de
