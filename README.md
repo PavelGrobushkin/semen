@@ -25,15 +25,21 @@ Sparsity of bulk and (especially) single-cell DNA methylation data is a major ch
 
 ## Contents
 
-- [Repository structure](#repository-structure)
-- [Notebooks](#notebooks)
-- [Data](#data)
-- [Results highlights](#results-highlights)
-- [Findings](#findings)
-- [Reproducibility](#reproducibility)
-- [Future directions](#future-directions)
-- [References](#references)
-- [Contact](#contact)
+- [SEMEN   SEgmentation for MEthylation Noise reduction ](#semen---segmentation-for-methylation-noise-reduction-)
+  - [About](#about)
+  - [Contents](#contents)
+  - [Repository structure](#repository-structure)
+  - [Notebooks](#notebooks)
+    - [`01_petkovich_blood_clocks.ipynb`](#01_petkovich_blood_clocksipynb)
+    - [`02_methylation_group_separation.ipynb`](#02_methylation_group_separationipynb)
+    - [`03_bin_segmentation.ipynb`](#03_bin_segmentationipynb)
+  - [Data](#data)
+  - [Results highlights](#results-highlights)
+  - [Findings](#findings)
+  - [Reproducibility](#reproducibility)
+  - [Future directions](#future-directions)
+  - [References](#references)
+  - [Contact](#contact)
 
 ## Repository structure
 
@@ -68,6 +74,10 @@ Builds and validates **epigenetic age clocks** on mouse blood. Five feature repr
 
 Tests whether segmentation helps **separate biological groups** in unsupervised analysis. On a Lean-vs-Obese RRBS dataset ([GSE85928](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE85928), [Day et. al, (2017)](https://doi.org/10.1080/15592294.2017.1281501)), the notebook builds ten feature representations (raw CpGs × {all, differentially methylated} × 5 segmentations), runs PCA on each, and quantifies separation of obese and lean samples in PCA space with the **silhouette score** and **Davies–Bouldin index**. A summary table at the end ranks the methods.
 
+### [`03_bin_segmentation.ipynb`](notebooks/03_bin_segmentation.ipynb)
+
+This notebook builds and validates epigenetic age clocks on mouse blood by comparing raw CpGs with DBSCAN-based cluster representations, and it emphasizes the key innovation of splitting DBSCAN clusters into internal bins using two distinct mechanisms: fixed bin count per cluster and fixed CpG count per bin. Models are trained on Petkovich data with LassoCV and nested 5×5 cross-validation, then transferred to the Thompson dataset for external validation, so the analysis explicitly tests whether cluster-level binning improves robustness and cross-dataset generalization compared to standard CpG and cluster-mean/cluster-median features.
+
 ## Data
 
 `sources/` is git-ignored because the parquet/BigWig matrices are too big for GitHub. To reproduce the analyses, populate `sources/` with the layout below. File naming inside each subfolder follows the conventions assumed by the notebooks (see the `Load data` cells).
@@ -91,6 +101,10 @@ External validation of Petkovich-trained clocks on the Thompson dataset (from no
 
 ![Thompson external validation](imgs/03_clocks_results.png)
 
+External validation of Petkovich-trained clocks on the Thompson dataset (from notebook 03) with bin segmentation:
+
+![Thompson external validation 2](imgs/05_thompson_validation_all_methods.png)
+
 Group-separation metrics across all ten feature representations (from notebook 02):
 
 ![Group separation summary table](imgs/04_separation_metrics.png)
@@ -99,7 +113,7 @@ Group-separation metrics across all ten feature representations (from notebook 0
 
 Headline conclusions from the defense (see [`docs/defense_poster_en.pdf`](docs/defense_poster_en.pdf) for the figures behind each point):
 
-1.  **Segmentation produces less noisy, better-transferable aging clocks** than site-level CpG models. ChromHMM-based features in particular transfer to the external Thompson dataset with R² close to the in-sample CpG baseline.
+1.  **Segmentation produces less noisy, better-transferable aging clocks** than site-level CpG models. ChromHMM-based and DBSCAN-binned (5 bins) features in particular transfer to the external Thompson dataset with R² close to the in-sample CpG baseline.
 2.  **Density-based methods (DBSCAN / HDBSCAN / OPTICS) work, but are critically sensitive to hyperparameter choice.** Smaller HDBSCAN `min_cluster_size` overfits the training distribution: the model looks great in nested CV on Petkovich but collapses on Thompson because the small clusters are not reliably covered in the external dataset.
 3.  **Segmentation does *not* improve group separation in the unsupervised obesity setting.** Silhouette / Davies–Bouldin scores barely move when going from raw CpGs to clustered features. Likely cause: blood methylation carries limited signal for an adipose-tissue phenotype; an alternative tissue match is needed before declaring this a property of segmentation itself.
 
