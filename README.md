@@ -1,10 +1,12 @@
+[![Data DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20359388.svg)](https://doi.org/10.5281/zenodo.20359388)
+
 # SEMEN <a href=""><img src="imgs/02_logo.png" align="right" width="350" ></a> <h3> SEgmentation for MEthylation Noise reduction </h3> 
 
 Grouping nearby CpG sites into segments to improve transferability of aging clocks and to improve separation of disease and healthy samples using DNA methylation data.
 
 📄 **Looking for a quick overview?** The one-page defense poster — problem, design, headline results — is at `docs/defense_poster_en.pdf`.
 
-> **Authors:** *Pavel Grobushkin*, affiliation; *Andrey Nekrasov*, affiliation
+> **Authors:** *Pavel Grobushkin*, Cologne Excellence Cluster on Cellular Stress Responses in Age-Associated Diseases (CECAD), University of Cologne, Cologne, Germany; *Andrey Nekrasov*, Research Centre for Medical Genetics, 115522 Moscow, Russia.
 >
 > **Supervisor:** *Evgeniy Efimov*, Skolkovo Institute of Science and Technologies, Artificial Intelligence Research Institute
 
@@ -44,17 +46,19 @@ Sparsity of bulk and (especially) single-cell DNA methylation data is a major ch
 seg_met_noise/
 ├── notebooks/                     # analyses — start here
 │   ├── 01_petkovich_blood_clocks.ipynb
-│   └── 02_methylation_group_separation.ipynb
+│   ├── 02_methylation_group_separation.ipynb
+│   └── 03_bin_segmentation.ipynb
 ├── scripts/                       # reusable helpers imported by notebooks
 │   ├── clock_utils.py             # feature aggregation, nested CV, age-plot
-│   └── segmentation_utils.py      # per-chromosome clustering, ChromHMM aggregation
+│   ├── segmentation_utils.py      # per-chromosome clustering, ChromHMM aggregation
+│   └── cluster_aggregation_utils.py
 ├── sources/                       # input data (gitignored)
 ├── outputs/                       # generated models & plots (per notebook)
 │   ├── 01_petkovich_blood_clocks/
-│   └── 02_methylation_group_separation/
+│   ├── 02_methylation_group_separation/
+│   └── 03_bin_segmentation/
 ├── imgs/                          # static assets used by this README
 ├── docs/                          # defense poster + research notes (candidate datasets, reading list)
-├── example_readme/                # README templates referenced when writing this one
 ├── environment.yml                # conda/mamba environment spec
 └── README.md
 ```
@@ -77,20 +81,19 @@ This notebook builds and validates epigenetic age clocks on mouse blood by compa
 
 ## Data
 
-`sources/` is git-ignored because the parquet/BigWig matrices are too big for GitHub. To reproduce the analyses, populate `sources/` with the layout below. File naming inside each subfolder follows the conventions assumed by the notebooks (see the `Load data` cells).
+**All input data for the notebooks is bundled on Zenodo:** [10.5281/zenodo.20359388](https://doi.org/10.5281/zenodo.20359388)
 
-| Subfolder | Dataset | GEO ID | Organism / Tissue | Used in |
-|---------------|---------------|---------------|---------------|---------------|
-| `Petkovich_GSE80672_Efi_processed/` | Petkovich *et al.* 2017 — RRBS, blood | [GSE80672](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE80672) | Mouse, blood | notebook 01 (train) |
-| `Thompson_GSE120132_Efi_processed/` | Thompson *et al.* 2018 — multi-tissue RRBS, blood subset | [GSE120132](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120132) | Mouse, blood | notebook 01 (validate) |
-| `obesity_GSE85928/` | Lean vs. Obese RRBS, 20 samples | [GSE85928](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE85928) | Human, adipose | notebook 02 |
+Download the archive and extract its contents into `sources/` at the project root. The archive contains five subfolders:
 
-**ChromHMM annotation sources:**
+| Subfolder | Type | Source | Used in |
+|---|---|---|---|
+| `Petkovich_GSE80672_Efi_processed/` | Preprocessed parquet matrices (RRBS, mouse blood) | [GSE80672](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE80672), Petkovich et al. (2017) | Notebook 01 (train) |
+| `Thompson_GSE120132_Efi_processed/` | Preprocessed parquet matrices (RRBS, mouse blood subset) | [GSE120132](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120132), Thompson et al. (2018) | Notebook 01 (validate) |
+| `obesity_GSE85928/` | Raw bigWig methylation files (human blood) | [GSE85928](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE85928), Day et al. (2017) | Notebook 02 |
+| `mouse_full_stack_ChromHMM_annotations/` | ChromHMM .bed annotations | [Vu & Ernst (2023)](https://doi.org/10.1186/s13059-023-02994-x) | Notebooks 01, 03 |
+| `human_Roadmap_Epigenomics_chromhmmSegmentations/` | ChromHMM .bed annotations (E062, 15-state) | [Roadmap Epigenomics (2015)](https://doi.org/10.1038/nature14248) | Notebook 02 |
 
-- Mouse full-stack ChromHMM (Vu & Ernst 2023): [mm10_100_segments_segments.bed.gz](https://egg2.wustl.edu/roadmap/web_portal/chr_state_learning.html)
-- Roadmap Epigenomics human ChromHMM (15-state core model for E062 (PBMC)): [E062_15_coreMarks_dense.bed.gz](https://egg2.wustl.edu/roadmap/data/byFileType/chromhmmSegmentations/ChmmModels/coreMarks/jointModel/final/E062_15_coreMarks_dense.bed.gz)
-
-For analysis in the notebook 01 **pre-processed parquet matrices** (CpG × sample, NaN where coverage ≤5 reads) and cleaned metadata CSVs produced by Evgeniy Efimov from the corresponding GEO submissions were used. If you do not have access to these processed files, contact us.
+The preprocessed Petkovich and Thompson matrices (parquet, CpG × sample, NaN where coverage ≤ 5 reads) were prepared by Evgeniy Efimov from the corresponding GEO submissions. The obesity bigWigs and both ChromHMM annotation sets are unmodified copies of the publicly available originals, bundled here for reproducibility convenience.
 
 ## Results highlights
 
@@ -121,7 +124,7 @@ mamba env create -f environment.yml
 mamba activate semen
 ```
 
-Heavy steps (HDBSCAN / OPTICS hyperparameter sweeps, full nested CV) are commented out by default in the notebooks; the corresponding `.pkl` results are loaded from `outputs/` so a kernel-restart-and-run-all completes in a few minutes. Uncomment the search blocks to regenerate.
+Heavy steps (HDBSCAN / OPTICS hyperparameter sweeps, full nested CV) are commented out by default in the notebooks; the corresponding `.pkl` results are loaded from `outputs/` so a kernel-restart-and-run-all completes in a few minutes. Uncomment these blocks to re-run.
 
 ## Future directions
 
