@@ -1,5 +1,2 @@
 # Raw data
 sources
-outputs/01_petkovich_blood_clocks/aggregated_features
-.DS_Store
-scripts/__pycache__/clock_utils.cpython-313.pyc
