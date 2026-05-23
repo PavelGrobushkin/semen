@@ -6,9 +6,15 @@ Grouping nearby CpG sites into segments to improve transferability of aging cloc
 
 📄 **Looking for a quick overview?** The one-page defense poster — problem, design, headline results — is at `docs/defense_poster_en.pdf`.
 
-> **Authors:** *Pavel Grobushkin*, Cologne Excellence Cluster on Cellular Stress Responses in Age-Associated Diseases (CECAD), University of Cologne, Cologne, Germany; *Andrey Nekrasov*, Research Centre for Medical Genetics, 115522 Moscow, Russia.
+> **Authors:**
 >
-> **Supervisor:** *Evgeniy Efimov*, Skolkovo Institute of Science and Technologies, Artificial Intelligence Research Institute
+> *Pavel Grobushkin*, Cologne Excellence Cluster on Cellular Stress Responses in Age-Associated Diseases (CECAD), University of Cologne, Cologne, Germany;
+>
+> *Andrey Nekrasov*, Research Centre for Medical Genetics, 115522 Moscow, Russia.
+>
+> **Supervisor:**
+>
+> *Evgeniy Efimov*, Skolkovo Institute of Science and Technologies, Artificial Intelligence Research Institute
 
 ------------------------------------------------------------------------
 
