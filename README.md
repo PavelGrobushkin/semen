@@ -25,21 +25,18 @@ Sparsity of bulk and (especially) single-cell DNA methylation data is a major ch
 
 ## Contents
 
-- [SEMEN   SEgmentation for MEthylation Noise reduction ](#semen---segmentation-for-methylation-noise-reduction-)
-  - [About](#about)
-  - [Contents](#contents)
-  - [Repository structure](#repository-structure)
-  - [Notebooks](#notebooks)
-    - [`01_petkovich_blood_clocks.ipynb`](#01_petkovich_blood_clocksipynb)
-    - [`02_methylation_group_separation.ipynb`](#02_methylation_group_separationipynb)
-    - [`03_bin_segmentation.ipynb`](#03_bin_segmentationipynb)
-  - [Data](#data)
-  - [Results highlights](#results-highlights)
-  - [Findings](#findings)
-  - [Reproducibility](#reproducibility)
-  - [Future directions](#future-directions)
-  - [References](#references)
-  - [Contact](#contact)
+- [Repository structure](#repository-structure)
+- [Notebooks](#notebooks)
+  - [`01_petkovich_blood_clocks.ipynb`](#01_petkovich_blood_clocksipynb)
+  - [`02_methylation_group_separation.ipynb`](#02_methylation_group_separationipynb)
+  - [`03_bin_segmentation.ipynb`](#03_bin_segmentationipynb)
+- [Data](#data)
+- [Results highlights](#results-highlights)
+- [Findings](#findings)
+- [Reproducibility](#reproducibility)
+- [Future directions](#future-directions)
+- [References](#references)
+- [Contact](#contact)
 
 ## Repository structure
 
