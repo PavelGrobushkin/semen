@@ -15,6 +15,28 @@ def _standardized_cluster_index(n_sites):
     return centered / scale
 
 
+def _validate_fillna(fillna, mean_label):
+    """Fail fast on an invalid `fillna` argument before any heavy computation."""
+    if fillna is None or fillna == mean_label or fillna == "zero":
+        return
+    if isinstance(fillna, (int, float)) and not isinstance(fillna, bool):
+        return
+    raise ValueError(
+        f"fillna must be one of: None, '{mean_label}', 'zero', or a numeric value"
+    )
+
+
+def _apply_fillna(X, fillna, mean_label):
+    """Apply the `fillna` strategy to a built feature matrix. Assumes `fillna` is valid."""
+    if fillna is None:
+        return X
+    if fillna == mean_label:
+        return X.apply(lambda col: col.fillna(col.mean()), axis=0)
+    if fillna == "zero":
+        return X.fillna(0.0)
+    return X.fillna(float(fillna))
+
+
 def build_cluster_cov_X(
     methylation_matrix,
     site_coords,
@@ -33,6 +55,8 @@ def build_cluster_cov_X(
     pd.DataFrame
         DataFrame of shape (n_samples, n_clusters).
     """
+    _validate_fillna(fillna, "feature_mean")
+
     clustered = site_coords.loc[site_coords[cluster_col] != -1, [cluster_col, pos_col]].copy()
     clustered = clustered.loc[clustered.index.intersection(methylation_matrix.index)]
 
@@ -68,18 +92,7 @@ def build_cluster_cov_X(
 
     X_cov = pd.DataFrame(cluster_features, index=sample_index)
 
-    if fillna is None:
-        return X_cov
-    if fillna == "feature_mean":
-        return X_cov.apply(lambda col: col.fillna(col.mean()), axis=0)
-    if fillna == "zero":
-        return X_cov.fillna(0.0)
-    if isinstance(fillna, (int, float)):
-        return X_cov.fillna(float(fillna))
-
-    raise ValueError(
-        "fillna must be one of: None, 'feature_mean', 'zero', or a numeric value"
-    )
+    return _apply_fillna(X_cov, fillna, "feature_mean")
 
 
 def build_cluster_corr_X(
@@ -111,6 +124,7 @@ def build_cluster_corr_X(
         raise ValueError("method must be one of: 'pearson', 'spearman', 'kendall'")
     if scale_by not in {None, "mean", "median"}:
         raise ValueError("scale_by must be one of: None, 'mean', 'median'")
+    _validate_fillna(fillna, "cluster_mean")
 
     clustered = site_coords.loc[site_coords[cluster_col] != -1, [cluster_col, pos_col]].copy()
     clustered = clustered.loc[clustered.index.intersection(methylation_matrix.index)]
@@ -186,18 +200,7 @@ def build_cluster_corr_X(
 
     X_corr = pd.DataFrame(cluster_features, index=sample_index)
 
-    if fillna is None:
-        return X_corr
-    if fillna == "cluster_mean":
-        return X_corr.apply(lambda col: col.fillna(col.mean()), axis=0)
-    if fillna == "zero":
-        return X_corr.fillna(0.0)
-    if isinstance(fillna, (int, float)):
-        return X_corr.fillna(float(fillna))
-
-    raise ValueError(
-        "fillna must be one of: None, 'cluster_mean', 'zero', or a numeric value"
-    )
+    return _apply_fillna(X_corr, fillna, "cluster_mean")
 
 
 def build_cluster_binned_X(
@@ -236,6 +239,7 @@ def build_cluster_binned_X(
         raise ValueError("n_bins must be provided when bin_mode='n_bins'")
     if bin_mode == "sites_per_bin" and sites_per_bin is None:
         raise ValueError("sites_per_bin must be provided when bin_mode='sites_per_bin'")
+    _validate_fillna(fillna, "feature_mean")
 
     clustered = site_coords.loc[site_coords[cluster_col] != -1, [cluster_col, pos_col]].copy()
     clustered = clustered.loc[clustered.index.intersection(methylation_matrix.index)]
@@ -284,15 +288,4 @@ def build_cluster_binned_X(
 
     X_binned = pd.DataFrame(cluster_features, index=sample_index)
 
-    if fillna is None:
-        return X_binned
-    if fillna == "feature_mean":
-        return X_binned.apply(lambda col: col.fillna(col.mean()), axis=0)
-    if fillna == "zero":
-        return X_binned.fillna(0.0)
-    if isinstance(fillna, (int, float)):
-        return X_binned.fillna(float(fillna))
-
-    raise ValueError(
-        "fillna must be one of: None, 'feature_mean', 'zero', or a numeric value"
-    )
+    return _apply_fillna(X_binned, fillna, "feature_mean")
